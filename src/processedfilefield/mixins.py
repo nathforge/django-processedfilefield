@@ -25,18 +25,21 @@ class ProcessedFieldFileMixin(object):
                 )
             
             content.seek(0)
-            transformed_file = transform(content)
-            
-            if not isinstance(transformed_file, File):
-                if not isinstance(transformed_file, str):
-                    raise ValueError('Variation "%s" didn\'t return a File object or a string' % (
-                        variation_name,
-                    ))
-                else:
-                    transformed_file = ContentFile(transformed_file)
-            
-            transformed_file.name = name
-            setattr(self.instance, variation_name, transformed_file)
+            setattr(self.instance, variation_name, self.transform(name, content, variation_name, transform))
+    
+    def transform(self, name, content, variation_name, transform):
+        transformed_file = transform(content)
+        
+        if not isinstance(transformed_file, File):
+            if isinstance(transformed_file, str):
+                transformed_file = ContentFile(transformed_file)
+                transformed_file.name = name
+            else:
+                raise ValueError('Variation "%s" didn\'t return a File object or a string' % (
+                    variation_name,
+                ))
+        
+        return transformed_file
 
 
 class ProcessedFileFieldMixin(object):
